@@ -1,0 +1,13 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "oraex-security",
+  "version": "0.1.0",
+  "description": "Auditorias de segurança reutilizáveis da ORAEX, aplicáveis a qualquer stack",
+  "author": {
+    "name": "athos-joao",
+    "email": "athos.joao@oraex.com.br"
+  },
+  "skills": [
+    "./skills"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "oraex",
+  "description": "Plugins internos da ORAEX para Claude Code: auditorias, convenções e automações compartilhadas entre crmx, finx e itsmx",
+  "owner": {
+    "name": "ORAEX",
+    "email": "athos.joao@oraex.com.br"
+  },
+  "plugins": [
+    {
+      "name": "oraex-security",
+      "source": "./plugins/oraex-security",
+      "description": "Auditorias de segurança reutilizáveis da ORAEX, aplicáveis a qualquer stack",
+      "tags": ["security", "audit", "mfa", "auth"]
+    }
+  ]
+}
