@@ -1,6 +1,6 @@
 # oraex-claude-plugins
 
-Plugins internos da ORAEX para Claude Code. Este repositório é **duas coisas
+Plugins da ORAEX para Claude Code. Este repositório é **duas coisas
 ao mesmo tempo**:
 
 - um **marketplace** (`.claude-plugin/marketplace.json` na raiz) — o catálogo;
