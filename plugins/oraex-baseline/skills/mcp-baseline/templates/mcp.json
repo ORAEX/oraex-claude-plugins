@@ -1,8 +1,12 @@
 {
   "mcpServers": {
-    "supabase": {
+    "supabase-local": {
       "type": "http",
-      "url": "<SUPABASE_MCP_URL — escolha o cenário na skill: local | remoto | token>"
+      "url": "http://localhost:<API_PORT>/mcp"
+    },
+    "supabase-prd": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=<PRD_PROJECT_REF>&read_only=true"
     },
     "github": {
       "type": "http",

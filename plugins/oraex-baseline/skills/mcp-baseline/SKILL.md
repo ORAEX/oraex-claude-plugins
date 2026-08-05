@@ -29,49 +29,57 @@ em `local`.
 resolve identidade por dev sem segredo para guardar — é sempre a primeira opção.
 Só cai para token quando o servidor não suporta OAuth.
 
-## Os três MCPs iniciais (mecanismo verificado)
+## Os MCPs iniciais (mecanismo verificado)
 
 | MCP | Transporte | Auth | Per-projeto |
 |---|---|---|---|
-| **Supabase** | HTTP **local** (`localhost:54321/mcp`) **ou** remoto (`mcp.supabase.com/mcp`) | **local: nenhuma** · remoto: **OAuth** no navegador | local: o próprio stack · remoto: `?project_ref=<ref>` |
+| **Supabase** | um server **por ambiente**: local (`localhost:<porta>/mcp`) e/ou SaaS (`mcp.supabase.com/mcp`) | local: **nenhuma** · SaaS: **OAuth** no navegador | um `supabase-<env>` por ambiente; porta local de `config.toml`, `project_ref` por SaaS |
 | **GitHub** | HTTP remoto (`api.githubcopilot.com/mcp/`) | **PAT** em `Authorization: Bearer ${GITHUB_PAT}` | escopo do próprio PAT |
 | **AWS** | via plugin `aws-core` | sessão **SSO** (sem segredo) | perfil SSO do ambiente |
 
-- **Supabase:** três cenários, escolhidos **por projeto** — ver a seção abaixo.
-  O local é de primeira classe, não exceção.
+- **Supabase:** o nº de ambientes **varia por projeto** (só `local`; ou `local + test + prd`).
+  Um `supabase-<env>` por ambiente — ver a seção abaixo. Local é primeira classe.
 - **GitHub:** `${GITHUB_PAT}` é expandido **no launch** a partir do ambiente. O
   PAT vem do `.env.local`/`.envrc` — de preferência puxado do Secrets Manager
   (`oraex/dev/<id>/mcp/github`) pela skill [[env-conventions]], não de arquivo estático.
 - **AWS:** não duplique — **ligue o `aws-core`**, que já fornece o MCP de AWS
   usando a sessão SSO. Um MCP de AWS próprio no `.mcp.json` só se o projeto exigir.
 
-## Supabase: escolha o cenário por projeto
+## Supabase: um server por ambiente (N variável por projeto)
 
-O Supabase tem **três** configurações válidas. Descubra qual o projeto usa antes
-de gravar — muitos projetos da ORAEX rodam **local** via CLI, e esse é o caminho
-padrão para eles, sem credencial nenhuma.
+O número de ambientes **varia**: um projeto tem só `local`; outro, sendo
+produtivo e de uso massivo, tem `local + test + prd` (test SaaS de verdade). O
+padrão é **um MCP server nomeado por ambiente** — `supabase-<env>` — cada um com
+o transporte certo para onde aquele ambiente vive. Todos coexistem no mesmo
+`.mcp.json`.
 
-**1. Local (stack da Supabase CLI)** — o mais comum no dev. Sem segredo, sem
-OAuth; depende de `supabase start` estar de pé.
-
-```json
-"supabase": { "type": "http", "url": "http://localhost:54321/mcp" }
-```
-
-**2. Remoto hospedado** — projeto na nuvem. OAuth no navegador na primeira vez
-(PAT não é mais necessário). `project_ref` escopa ao projeto; `read_only=true`
-salvo pedido explícito de escrita.
+**Ambiente local (stack da Supabase CLI)** — sem OAuth, sem segredo. A porta
+**não é fixa**: leia de `supabase/config.toml` (`[api] port`), com fallback
+54321. Nunca crave a porta — projetos remapeiam (ex.: um CLAUDE.md que usa 57321).
 
 ```json
-"supabase": { "type": "http", "url": "https://mcp.supabase.com/mcp?project_ref=<SUPABASE_PROJECT_REF>&read_only=true" }
+"supabase-local": { "type": "http", "url": "http://localhost:<API_PORT>/mcp" }
 ```
 
-**3. Token estático** (self-hosted, ou cliente sem suporte a OAuth) — só quando
-1 e 2 não servem. Aí vale o padrão `asm-exec` + Secrets Manager per-dev
-(`reference/aws-setup.md`), nunca token literal no arquivo.
+**Ambiente SaaS (test, prd, staging…)** — OAuth no navegador (PAT não é mais
+necessário). `project_ref` escopa ao projeto; `read_only=true` por padrão em
+prd/test, `false` só com pedido explícito.
 
-Regra prática: **local → cenário 1; nuvem com OAuth → cenário 2; nuvem sem OAuth
-→ cenário 3.** Na dúvida entre local e nuvem, **pergunte** — não presuma.
+```json
+"supabase-prd":  { "type": "http", "url": "https://mcp.supabase.com/mcp?project_ref=<PRD_REF>&read_only=true" },
+"supabase-test": { "type": "http", "url": "https://mcp.supabase.com/mcp?project_ref=<TEST_REF>&read_only=true" }
+```
+
+**Self-hosted só-token** (raro) — `asm-exec` + Secrets Manager per-dev
+(`reference/aws-setup.md`), nunca token literal.
+
+Regras de nome e escopo:
+
+- Nome = `supabase-<env>` com o nome real do ambiente (local, dev, test, staging, prd).
+- `read_only=true` em qualquer ambiente produtivo/compartilhado; só o local
+  costuma ser leitura+escrita.
+- **Descubra quais ambientes o projeto tem — não presuma o número.** Pergunte
+  quais existem e o `project_ref` de cada SaaS.
 
 ## Taxonomia (decida cada valor por ela)
 
@@ -90,19 +98,20 @@ resolvido em runtime — ver `reference/aws-setup.md`.
 
 1. Confirme pré-requisitos: `.envrc` com `ORAEX_DEV_ID` (skill [[env-conventions]]);
    `aws sso login` feito; `GITHUB_PAT` no ambiente se for usar GitHub.
-2. **Escolha o cenário de Supabase** (local / remoto / token — ver seção acima).
-   Se local, a URL é `http://localhost:54321/mcp` e não há mais nada a coletar.
-   Se remoto, descubra o `project_ref` deste projeto (peça ou leia de config).
-3. Copie `templates/mcp.json`, troque o placeholder `<SUPABASE_MCP_URL...>` pela
-   URL do cenário escolhido, preencha os demais literais e escreva em `.mcp.json`
-   na raiz do projeto. **Não** invente `project_ref` nem o cenário: se não souber
-   se é local ou nuvem, pergunte.
+2. **Levante os ambientes de Supabase do projeto** (pode ser 1, 2 ou 3+: local,
+   test, prd…). Para cada um:
+   - **local** → leia a porta de `supabase/config.toml` (`[api] port`, fallback 54321);
+   - **SaaS** → colete o `project_ref` e defina `read_only` (true em prd/test, salvo pedido).
+   **Pergunte** quais ambientes existem se não estiver claro — não presuma o número.
+3. Use `templates/mcp.json` como base e emita **um `supabase-<env>` por ambiente**
+   com a URL certa; preencha os demais literais e escreva em `.mcp.json` na raiz.
+   **Não** invente `project_ref`, porta nem a quantidade de ambientes.
 4. Lembre o usuário: `aws sso login`; para GitHub, ter `GITHUB_PAT` no ambiente
    (idealmente via Secrets Manager — ver [[env-conventions]] e `reference/aws-setup.md`).
-5. Valide: `/mcp` na sessão (ou `claude mcp list`). Supabase **local** conecta
-   direto se o stack estiver de pé (`supabase start`); **remoto** pede login
-   OAuth no navegador na primeira vez. `! Needs authentication` costuma ser esse
-   OAuth pendente ou sessão SSO expirada.
+5. Valide: `/mcp` na sessão (ou `claude mcp list`). Cada `supabase-<env>` **local**
+   conecta direto se o stack estiver de pé (`supabase start`); cada **SaaS** pede
+   login OAuth no navegador na primeira vez. `! Needs authentication` costuma ser
+   esse OAuth pendente ou sessão SSO expirada.
 
 > **Pacotes/endpoints de MCP mudam.** Antes de gravar, confirme o transporte e a
 > URL atuais de cada servidor — este arquivo reflete o estado verificado na data
