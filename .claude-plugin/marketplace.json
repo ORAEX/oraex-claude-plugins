@@ -12,6 +12,12 @@
       "source": "./plugins/oraex-security",
       "description": "Auditorias de segurança reutilizáveis da ORAEX, aplicáveis a qualquer stack",
       "tags": ["security", "audit", "mfa", "auth"]
+    },
+    {
+      "name": "oraex-baseline",
+      "source": "./plugins/oraex-baseline",
+      "description": "Baseline ORAEX: convenções de MCP por projeto (asm-exec + segredos per-dev via SSO) e de arquivos de ambiente",
+      "tags": ["mcp", "baseline", "secrets", "env", "conventions"]
     }
   ]
 }
