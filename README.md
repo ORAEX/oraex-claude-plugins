@@ -57,8 +57,10 @@ claude plugin validate . --strict                          # manifesto do market
 claude plugin details oraex-security@oraex                 # inventário + custo em tokens
 ```
 
-Com o marketplace apontando para o diretório local, editar um `SKILL.md` e
-rodar `/reload-plugins` já reflete na sessão — sem reinstalar.
+Com o marketplace apontando para o **diretório local**, editar um `SKILL.md` e
+rodar `/reload-plugins` reflete na sessão — sem reinstalar. Já com o marketplace
+via **git** (o caso do time), uma mudança só propaga com **bump de versão +
+`marketplace update` + `/reload-plugins`** — ver [Versionamento](#versionamento).
 
 ### Anatomia
 
@@ -80,13 +82,23 @@ Regra que mais gera erro: `.claude-plugin/` contém **apenas** o manifesto.
 
 ### Versionamento
 
-`version` no `plugin.json` controla a atualização: quem instalou só recebe
-novidade quando o número sobe. Suba a versão ao mudar uma skill, senão o
-time continua com a antiga.
+`version` no `plugin.json` controla a atualização, e **o cache extraído é
+indexado por versão**: enquanto o número não sobe, nem `marketplace update` nem
+`/reload-plugins` re-extraem — a skill ativa continua a antiga, mesmo com o repo
+já atualizado. Por isso, **todo edit de conteúdo (skill, template, reference)
+exige subir a `version`** (`marketplace.json` não pina versão — só o `plugin.json`).
 
-```bash
-claude plugin update oraex-security@oraex
-```
+Para propagar uma mudança:
+
+1. Suba a versão em `plugins/<plugin>/.claude-plugin/plugin.json`.
+2. `git commit` + `push`.
+3. Em cada máquina, **nesta ordem**:
+   1. `claude plugin marketplace update oraex` — atualiza o clone do repo (**primeiro**).
+   2. `/reload-plugins`, dentro do Claude Code — re-extrai e recarrega (**depois**).
+
+A ordem importa: reload sem update relê o clone antigo; update sem reload não
+recarrega a sessão. Para conferir que pegou (não presuma), veja o dir da versão
+nova no cache: `~/.claude/plugins/cache/oraex/<plugin>/<versão>/`.
 
 ## Escrever uma skill nova
 
