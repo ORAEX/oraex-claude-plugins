@@ -181,6 +181,25 @@ mesma ideia; a policy usa `secretsmanager:GetSecretValue` (variável no ARN ou
 condição por tag). O hook do `aws-core` bloqueia `get-secret-value` — barreira
 estrutural que o SSM não tem.
 
+> **`asm-exec` no PATH (setup por-máquina):** o `aws-core` entrega o `asm-exec`
+> em `references/` do plugin, **fora do PATH** — um `.envrc`/shell comum não o
+> acha (`asm-exec: command not found`). Este caminho alternativo só funciona com
+> um wrapper por-máquina que localiza o binário no cache do plugin (resiliente a
+> upgrade de versão):
+>
+> ```bash
+> cat > ~/.local/bin/asm-exec <<'SH'
+> #!/usr/bin/env bash
+> exec python3 "$(ls -d "$HOME"/.claude/plugins/cache/claude-plugins-official/aws-core/*/skills/aws-secrets-manager/references/asm-exec | sort -V | tail -1)" "$@"
+> SH
+> chmod +x ~/.local/bin/asm-exec
+> ```
+>
+> O caminho **padrão** (Parameter Store + `aws ssm get-parameter`) **não** precisa
+> disso — só o `aws` CLI. Se o seu `.envrc` chama `asm-exec`, provavelmente foi
+> gerado de um baseline antigo: rode `claude plugin marketplace update` e
+> regenere pelo `env-conventions`.
+
 ---
 
 ¹ [CreateInstanceAccessControlAttributeConfiguration](https://docs.aws.amazon.com/singlesignon/latest/APIReference/API_CreateInstanceAccessControlAttributeConfiguration.html)
