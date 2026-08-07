@@ -14,7 +14,7 @@ qualquer projeto por configuração, em vez de copiar arquivo entre repos.
 | Plugin | Skills | Para quê |
 |---|---|---|
 | `oraex-security` | `audit-mfa` | Auditoria de MFA: verifica se o segundo fator é exigido pelo servidor ou apenas sugerido pela interface |
-| `oraex-baseline` | `mcp-baseline`, `env-conventions` | Padroniza MCP por projeto (`.mcp.json` local com `asm-exec` + segredos per-dev no Secrets Manager, via SSO) e arquivos de ambiente (`.env`/`.env.local`/`.envrc`) |
+| `oraex-baseline` | `mcp-baseline`, `env-conventions`, `sessao` | Padroniza MCP por projeto (`.mcp.json` local, segredos per-dev no SSM Parameter Store via SSO), arquivos de ambiente (`.env`/`.env.local`/`.envrc`) e a rotina de sessão em máquinas sincronizadas por git |
 
 ## Instalar
 
