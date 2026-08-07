@@ -1,6 +1,6 @@
 ---
 name: sessao
-description: Abre ou encerra uma sessão de trabalho num projeto sincronizado por git entre várias máquinas. Use ao começar ("bom dia", "vamos retomar", "abrindo sessão", "sentei na outra máquina") e ao terminar ("encerrando", "vou parar por hoje", "fechando a sessão"). Roda o scripts/session.sh do projeto e interpreta a saída: divergência de git, dependências desatualizadas, arquivos de ambiente que não viajam, migrations pendentes (local e remoto) e os checks de CI antes de largar a máquina.
+description: Abre ou encerra uma sessão de trabalho num projeto sincronizado por git entre várias máquinas. Use ao começar ("bom dia", "vamos retomar", "abrindo sessão", "sentei na outra máquina") e ao terminar ("encerrando", "vou parar por hoje", "fechando a sessão"). Roda o scripts/session.sh do projeto e interpreta a saída, resolvendo divergência de git, dependências desatualizadas, arquivos de ambiente que não viajam, migrations pendentes (local e remoto) e os checks de CI antes de largar a máquina.
 ---
 
 # Rotina de sessão (padrão ORAEX)
