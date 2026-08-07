@@ -1,0 +1,19 @@
+# .envrc — versionado (sem segredo). Gerado pela skill env-conventions (padrão ORAEX).
+# Requer direnv (`direnv allow` após salvar).
+
+export ORAEX_DEV_ID="<ORAEX_DEV_ID>"   # handle SEM @ (ex.: athos.joao); compõe o nome do parâmetro SSM
+export AWS_PROFILE="<AWS_PROFILE>"      # profile SSO (ex.: oraex-dev / AWSDeveloperAccess)
+export AWS_REGION="<AWS_REGION>"        # ex.: sa-east-1
+
+# Segredos de MCP env-sourced: puxados do SSM Parameter Store (não repousam em arquivo).
+# Uma linha por servidor que use token. Requer: aws sso login --profile "$AWS_PROFILE".
+if GITHUB_PAT="$(aws ssm get-parameter --name "/oraex/dev/$ORAEX_DEV_ID/mcp/github" \
+    --with-decryption --query 'Parameter.Value' --output text \
+    --region "$AWS_REGION" --profile "$AWS_PROFILE" 2>/dev/null)"; then
+  export GITHUB_PAT
+else
+  echo "env-conventions: falha ao ler GITHUB_PAT do SSM — rode: aws sso login --profile $AWS_PROFILE" >&2
+fi
+
+# segredos ainda fora do Parameter Store: mantenha em .env.local (gitignored)
+dotenv_if_exists .env.local

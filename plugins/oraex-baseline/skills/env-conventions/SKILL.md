@@ -32,6 +32,10 @@ de resolução em runtime, com o segredo nunca no env.)
 O `.envrc` é o que faz o `${ORAEX_DEV_ID}` existir no ambiente quando você abre
 o Claude Code no projeto. Requer `direnv` instalado e `direnv allow` no repo.
 
+Esta skill **gera** o `.envrc` a partir de `templates/envrc`, preenchendo os
+valores (todos **não-secretos**) que coleta interativamente com você — não é para
+editar à mão. O bloco abaixo é o que ela produz:
+
 ```bash
 # .envrc — versionado (não tem segredo)
 export ORAEX_DEV_ID="athos.joao"     # handle SEM @; compõe o NOME do parâmetro SSM
@@ -66,8 +70,12 @@ dotenv_if_exists .env.local
    e `.env.example` **não**.
 2. Crie/atualize `.env.example` listando toda variável usada no projeto, com
    valores vazios ou claramente falsos. É o contrato de onboarding.
-3. Crie o `.envrc` com `ORAEX_DEV_ID`, `AWS_PROFILE`, `AWS_REGION`. Peça ao
-   usuário o `ORAEX_DEV_ID` dele se não houver um definido.
+3. **Gere o `.envrc` a partir de `templates/envrc`**, coletando interativamente
+   os valores não-secretos: `ORAEX_DEV_ID` (handle sem `@`), `AWS_PROFILE` (o
+   profile SSO de dev, ex.: `oraex-dev`) e `AWS_REGION`. Pergunte cada um que não
+   estiver definido — **não invente**. Adicione **uma linha de sourcing por MCP
+   que use token** (o template já traz a do GitHub) e escreva em `.envrc` na raiz.
+   `direnv allow` ao final.
 4. Se algum segredo estiver hoje versionado num `.env`, sinalize como incidente:
    mover para `.env.local` (ou Parameter Store) e **rotacionar** a chave exposta.
 
