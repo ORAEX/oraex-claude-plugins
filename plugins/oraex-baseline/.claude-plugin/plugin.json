@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "oraex-baseline",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Baseline ORAEX: convenções de MCP por projeto (asm-exec + segredos per-dev no AWS Secrets Manager, via SSO) e de arquivos de ambiente (.env/.env.local/.envrc)",
   "author": {
     "name": "athos-joao",
