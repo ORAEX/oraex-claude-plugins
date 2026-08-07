@@ -86,7 +86,7 @@ Regras de nome e escopo:
 | Tipo | Exemplo | Como entra |
 |---|---|---|
 | **OAuth** | Supabase | nada no arquivo além da URL; login no navegador |
-| **Segredo per-dev** | PAT do GitHub | `${GITHUB_PAT}` (env) — puxado do Secrets Manager; **nunca** literal |
+| **Segredo per-dev** | PAT do GitHub | `${GITHUB_PAT}` (env) — puxado do SSM Parameter Store; **nunca** literal |
 | **Não-segredo per-projeto** | `project_ref`, owner/repo | literal no `.mcp.json` |
 | **Identidade per-máquina** | `ORAEX_DEV_ID`, `AWS_PROFILE`, `GITHUB_PAT` | vem do `.envrc`/`.env.local` (expande no launch) |
 
