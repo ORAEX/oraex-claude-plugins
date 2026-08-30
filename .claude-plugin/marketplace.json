@@ -24,6 +24,12 @@
       "source": "./plugins/oraex-design",
       "description": "Revisão de arquitetura / design-doc da ORAEX contra os princípios de engenharia, aplicável a qualquer projeto",
       "tags": ["design", "architecture", "review", "multi-tenant"]
+    },
+    {
+      "name": "oraex-ui",
+      "source": "./plugins/oraex-ui",
+      "description": "Identidade visual dos produtos ORAEX: baseline de cor/tipografia/logo/padrões (multi-tenant, tematizável) e revisão de UI contra ela",
+      "tags": ["ui", "design-system", "brand", "review", "multi-tenant", "a11y"]
     }
   ]
 }
