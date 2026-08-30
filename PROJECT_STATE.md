@@ -9,7 +9,11 @@ conta** — esses ficam na memória do projeto (privada).
 - Marketplace: `ORAEX/oraex-claude-plugins` (repositório público).
 - Plugins:
   - **oraex-baseline** — skills `env-conventions`, `mcp-baseline`, `sessao`.
-  - **oraex-security** — skill `audit-mfa`.
+  - **oraex-security** — skills `audit-mfa`, `revisao-seguranca`; agent `oraex-security-review`.
+  - **oraex-design** — skill `revisao-design`; agent `oraex-design-review`.
+- Agents e skills de revisão (design + segurança de tenant) migrados do
+  `~/projects/itsmx/.claude` para o marketplace. Disparo por gatilho/momento
+  (não auto-spawn no start da sessão — decisão consciente).
 - Padrão de segredo de MCP **validado ponta a ponta**: SSM Parameter Store
   `SecureString` per-dev, ABAC tag-based por `DevId`, permission set dedicado
   (`AWSDeveloperAccess`) com `Deny` que isola. Operacional e IDs concretos: memória.

@@ -11,13 +11,19 @@
       "name": "oraex-security",
       "source": "./plugins/oraex-security",
       "description": "Auditorias de segurança reutilizáveis da ORAEX, aplicáveis a qualquer stack",
-      "tags": ["security", "audit", "mfa", "auth"]
+      "tags": ["security", "audit", "mfa", "auth", "multi-tenant", "rls", "review"]
     },
     {
       "name": "oraex-baseline",
       "source": "./plugins/oraex-baseline",
       "description": "Baseline ORAEX: convenções de MCP por projeto (asm-exec + segredos per-dev via SSO) e de arquivos de ambiente",
       "tags": ["mcp", "baseline", "secrets", "env", "conventions"]
+    },
+    {
+      "name": "oraex-design",
+      "source": "./plugins/oraex-design",
+      "description": "Revisão de arquitetura / design-doc da ORAEX contra os princípios de engenharia, aplicável a qualquer projeto",
+      "tags": ["design", "architecture", "review", "multi-tenant"]
     }
   ]
 }

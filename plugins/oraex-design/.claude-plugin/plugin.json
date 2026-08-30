@@ -1,0 +1,13 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "oraex-design",
+  "version": "0.1.0",
+  "description": "Revisão de arquitetura / design-doc da ORAEX contra os princípios de engenharia (multi-tenant, fronteiras de módulo, auditabilidade, altitude), aplicável a qualquer projeto ORAEX",
+  "author": {
+    "name": "athos-joao",
+    "email": "athos.joao@oraex.com.br"
+  },
+  "skills": [
+    "./skills"
+  ]
+}
