@@ -11,6 +11,8 @@ conta** — esses ficam na memória do projeto (privada).
   - **oraex-baseline** — skills `env-conventions`, `mcp-baseline`, `sessao`.
   - **oraex-security** — skills `audit-mfa`, `revisao-seguranca`; agent `oraex-security-review`.
   - **oraex-design** — skill `revisao-design`; agent `oraex-design-review`.
+  - **oraex-ui** — skill `revisao-ui`; agent `oraex-ui-review`; baseline de
+    identidade visual em `references/identidade-visual.md` + logos em `assets/logo/`.
 - Agents e skills de revisão (design + segurança de tenant) migrados do
   `~/projects/itsmx/.claude` para o marketplace. Disparo por gatilho/momento
   (não auto-spawn no start da sessão — decisão consciente).
@@ -19,6 +21,12 @@ conta** — esses ficam na memória do projeto (privada).
   (`AWSDeveloperAccess`) com `Deny` que isola. Operacional e IDs concretos: memória.
 - Este repo **dogfooda** a `sessao`: `scripts/session.sh` roda validação de plugin
   + guarda de bump de versão.
+- **Identidade visual ORAEX** (rebranding 2026, decisão de comitê) codificada no
+  `oraex-ui`: azul `#1E74C8`, tipografia Archivo/IBM Plex Sans (Michroma só
+  wordmark), tokens em duas camadas (seed sobrescrevível vs semânticos fixos,
+  light+dark em `oklch`), pronto p/ white-label multi-tenant — mas o motor de
+  tema por tenant é `[ADIADO]` (só a costura existe). Kit de marca original em
+  `~/Documents/ORAEX/Marketing/Rebranding 2026/rebranding/`.
 
 ## Convenções (fonte da verdade = o baseline)
 
@@ -37,6 +45,9 @@ conta** — esses ficam na memória do projeto (privada).
 - [ ] IaC (CloudFormation/CDK) do permission set + grupo `Developers`.
 - [ ] Trocar assignment do usuário pelo grupo `Developers` (onboarding oficial).
 - [ ] itsmx: confirmar migração concluída ao padrão do baseline.
+- [ ] finx: aplicar os tokens ORAEX em `app/globals.css` (hoje é o tema shadcn
+      cinza de fábrica) — patch pronto para preparar quando pedir.
+- [ ] finx: rodar `revisao-ui` numa tela real e fechar o gap que ela apontar.
 
 ## Como retomar
 
