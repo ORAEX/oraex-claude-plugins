@@ -32,6 +32,10 @@ conta** — esses ficam na memória do projeto (privada).
 
 - `.env` commitado não-secreto; `.env.local` gitignored; segredo no Parameter Store
   puxado via `.envrc`. Ver skill `env-conventions`.
+- **Identidade per-dev fora do arquivo versionado**: `ORAEX_DEV_ID` mora no
+  `.envrc.local` (gitignored); o `.envrc` só faz `source_env_if_exists .envrc.local`
+  e envolve o SSM em `if [ -n "$ORAEX_DEV_ID" ]`. Contrato em `.envrc.local.example`.
+  Corrigido na fonte (`env-conventions` v0.4.0); já aplicado no itsmx.
 - `.mcp.json` por projeto; Supabase local/SaaS por ambiente (`supabase-<env>`);
   MCP de nuvem opt-in por sessão via `/mcp`. Ver skill `mcp-baseline`.
 - **Todo edit de conteúdo de plugin exige bump da `version`** no `plugin.json`,
@@ -45,6 +49,7 @@ conta** — esses ficam na memória do projeto (privada).
 - [ ] IaC (CloudFormation/CDK) do permission set + grupo `Developers`.
 - [ ] Trocar assignment do usuário pelo grupo `Developers` (onboarding oficial).
 - [ ] itsmx: confirmar migração concluída ao padrão do baseline.
+- [ ] Propagar o `.envrc.local` per-dev para **crmx** e **finx** (fonte já corrigida).
 - [ ] finx: aplicar os tokens ORAEX em `app/globals.css` (hoje é o tema shadcn
       cinza de fábrica) — patch pronto para preparar quando pedir.
 - [ ] finx: rodar `revisao-ui` numa tela real e fechar o gap que ela apontar.

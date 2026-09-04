@@ -18,7 +18,9 @@ Center). Ver [[mcp-baseline]] e `reference/aws-setup.md`.
 | `.env` | defaults **não-secretos** compartilhados (feature flags, URLs públicas) | **versionado** |
 | `.env.local` | **segredos** e overrides da máquina | **gitignored** |
 | `.env.example` | o **contrato**: toda chave que existe, com valor vazio/fake | **versionado** |
-| `.envrc` | direnv: identidade e sessão (`ORAEX_DEV_ID`, `AWS_PROFILE`, `AWS_REGION`) | **versionado** |
+| `.envrc` | direnv: sessão compartilhada (`AWS_PROFILE`, `AWS_REGION`) e sourcing do `.envrc.local` | **versionado** |
+| `.envrc.local` | identidade **POR-DEV** (`ORAEX_DEV_ID`, o handle sem `@`) | **gitignored** |
+| `.envrc.local.example` | o **contrato** do handle per-dev (copie para `.envrc.local`) | **versionado** |
 
 Regra de ouro: **segredo nunca em arquivo versionado.** `.env` e `.env.example`
 entram no git; `.env.local` nunca. Segredos reais da ORAEX moram no **AWS SSM
@@ -32,24 +34,45 @@ de resolução em runtime, com o segredo nunca no env.)
 O `.envrc` é o que faz o `${ORAEX_DEV_ID}` existir no ambiente quando você abre
 o Claude Code no projeto. Requer `direnv` instalado e `direnv allow` no repo.
 
-Esta skill **gera** o `.envrc` a partir de `templates/envrc`, preenchendo os
+O `.envrc` é **versionado e igual para toda a ORAEX** — por isso NÃO carrega o
+handle: `ORAEX_DEV_ID` é per-dev e vive no `.envrc.local` (gitignored), sourciado
+no topo do `.envrc`. Se o handle fosse hardcoded no arquivo versionado, todo dev
+novo herdaria o mesmo handle (lendo o SSM de outra pessoa, sem acesso) e qualquer
+correção viraria conflito de merge recorrente.
+
+Esta skill **gera** o `.envrc` a partir de `templates/envrc` e o
+`.envrc.local` a partir de `templates/envrc.local.example`, preenchendo os
 valores (todos **não-secretos**) que coleta interativamente com você — não é para
-editar à mão. O bloco abaixo é o que ela produz:
+editar à mão. Os blocos abaixo são o que ela produz:
 
 ```bash
-# .envrc — versionado (não tem segredo)
-export ORAEX_DEV_ID="athos.joao"     # handle SEM @; compõe o NOME do parâmetro SSM
-export AWS_PROFILE="oraex-dev"        # profile SSO do AWSDeveloperAccess (não-admin)
-export AWS_REGION="sa-east-1"
+# .envrc — versionado (não tem segredo, não tem handle)
+source_env_if_exists .envrc.local     # traz o ORAEX_DEV_ID per-dev (gitignored)
+
+export AWS_PROFILE="${AWS_PROFILE:-oraex-dev}"   # profile SSO do AWSDeveloperAccess (não-admin)
+export AWS_REGION="${AWS_REGION:-sa-east-1}"
+
+if [ -z "${ORAEX_DEV_ID:-}" ]; then
+  echo "env-conventions: ORAEX_DEV_ID não definido — copie .envrc.local.example para .envrc.local." >&2
+fi
 
 # PAT do GitHub para o MCP remoto: puxado do SSM Parameter Store (não fica em arquivo).
-# Requer sessão SSO ativa (aws sso login --profile oraex-dev).
-export GITHUB_PAT="$(aws ssm get-parameter --name "/oraex/dev/$ORAEX_DEV_ID/mcp/github" \
-  --with-decryption --query 'Parameter.Value' --output text \
-  --region "$AWS_REGION" --profile "$AWS_PROFILE")"
+# Só chama o SSM se houver handle. Requer sessão SSO ativa (aws sso login --profile oraex-dev).
+if [ -n "${ORAEX_DEV_ID:-}" ]; then
+  if GITHUB_PAT="$(aws ssm get-parameter --name "/oraex/dev/$ORAEX_DEV_ID/mcp/github" \
+      --with-decryption --query 'Parameter.Value' --output text \
+      --region "$AWS_REGION" --profile "$AWS_PROFILE" 2>/dev/null)"; then
+    export GITHUB_PAT
+  fi
+fi
 
 # demais segredos ainda fora do Parameter Store: mantenha em .env.local
 dotenv_if_exists .env.local
+```
+
+```bash
+# .envrc.local — POR-DEV, gitignored. Cada dev põe o SEU handle.
+export ORAEX_DEV_ID="seu.handle"     # handle SEM @; compõe o NOME do parâmetro SSM
 ```
 
 > `ORAEX_DEV_ID` é o **handle sem `@`** que compõe o nome do parâmetro
@@ -66,16 +89,21 @@ dotenv_if_exists .env.local
 
 ## Procedimento
 
-1. Garanta o `.gitignore`: `.env.local` (e variantes `*.local`) ignorados; `.env`
-   e `.env.example` **não**.
+1. Garanta o `.gitignore`: `.env.local` e `.envrc.local` (e variantes `*.local`)
+   ignorados; `.env`, `.env.example` e `.envrc.local.example` **não**.
 2. Crie/atualize `.env.example` listando toda variável usada no projeto, com
    valores vazios ou claramente falsos. É o contrato de onboarding.
-3. **Gere o `.envrc` a partir de `templates/envrc`**, coletando interativamente
-   os valores não-secretos: `ORAEX_DEV_ID` (handle sem `@`), `AWS_PROFILE` (o
-   profile SSO de dev, ex.: `oraex-dev`) e `AWS_REGION`. Pergunte cada um que não
-   estiver definido — **não invente**. Adicione **uma linha de sourcing por MCP
-   que use token** (o template já traz a do GitHub) e escreva em `.envrc` na raiz.
-   `direnv allow` ao final.
+3. **Gere o `.envrc` a partir de `templates/envrc`** (sem handle: ele apenas
+   sourceia o `.envrc.local` e traz `AWS_PROFILE`/`AWS_REGION` com default
+   overridável) e o **`.envrc.local.example` a partir de
+   `templates/envrc.local.example`** (contrato versionado do handle). Colete
+   interativamente os valores não-secretos: `AWS_PROFILE` (o profile SSO de dev,
+   ex.: `oraex-dev`) e `AWS_REGION`, e o `ORAEX_DEV_ID` do dev (handle sem `@`).
+   Pergunte cada um que não estiver definido — **não invente**. Escreva/atualize o
+   **`.envrc.local` gitignored** com o handle coletado (para a máquina dele já
+   funcionar) — o `.envrc` versionado **não** carrega handle. Adicione **uma linha
+   de sourcing por MCP que use token** (o template já traz a do GitHub). `direnv
+   allow` ao final.
 4. Se algum segredo estiver hoje versionado num `.env`, sinalize como incidente:
    mover para `.env.local` (ou Parameter Store) e **rotacionar** a chave exposta.
 

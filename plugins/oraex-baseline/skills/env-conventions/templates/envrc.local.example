@@ -1,0 +1,3 @@
+# .envrc.local — identidade POR-DEV. NÃO versionado (gitignored).
+# Copie para .envrc.local e ponha o SEU handle, depois `direnv allow`.
+export ORAEX_DEV_ID="seu.handle"   # SEM @; ex.: maria.silva. NÃO use o usuário do SO.
