@@ -1,7 +1,7 @@
 # Alertas Slack — equivalente aos service hooks Slack do Azure DevOps
 # (git.push em qualquer branch + build.complete com falha), migrado em 2026-10-13.
 # Webhook: secret de repositório SLACK_WEBHOOK_URL (plano Free: secret de org não chega a repo privado).
-# Payload montado com jq a partir de $GITHUB_EVENT_PATH: nada do evento é interpolado no shell.
+# Payload Block Kit montado com jq a partir de $GITHUB_EVENT_PATH: nada do evento é interpolado no shell.
 name: Alertas Slack
 
 on:
@@ -22,10 +22,31 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           payload=$(jq -c '
-            (.ref | sub("^refs/(heads|tags)/"; "")) as $ref
-            | (if .deleted then "removeu" elif .created then "criou" else "fez push em" end) as $acao
-            | ([.commits[]? | "• <\(.url)|\(.id[0:7])> \(.message | split("\n")[0])"] | .[0:10] | join("\n")) as $lista
-            | {text: "*[\(.repository.full_name)]* \(.pusher.name) \($acao) `\($ref)` (\(.commits | length) commit(s))\n\($lista)\n<\(.compare)|comparar>"}
+            def esc: gsub("&"; "&amp;") | gsub("<"; "&lt;") | gsub(">"; "&gt;");
+            .repository as $repo
+            | (.ref | sub("^refs/(heads|tags)/"; "")) as $ref
+            | (if (.ref | startswith("refs/tags/")) then "tag" else "branch" end) as $tipo
+            | ((.commits // []) | length) as $n
+            | (if .deleted then ":wastebasket: removeu \($tipo) `\($ref | esc)`"
+               elif .created and $n == 0 then ":sparkles: criou \($tipo) `\($ref | esc)`"
+               else ":arrow_up: \($n) commit\(if $n == 1 then "" else "s" end) em `\($ref | esc)`" end) as $resumo
+            | ([(.commits // [])[-5:][] | "<\(.url)|\(.id[0:7])>  \(.message | split("\n")[0] | esc)  _\(.author.name | esc)_"]
+               + (if $n > 5 then ["_… e mais \($n - 5)_"] else [] end) | join("\n")) as $lista
+            | (.sender.login // .pusher.name) as $autor
+            | {
+                attachments: [{
+                  color: "#1E74C8",
+                  fallback: "\($repo.full_name): \($autor) \($resumo)",
+                  blocks: ([
+                    {type: "section", text: {type: "mrkdwn", text: "*<\($repo.html_url)|\($repo.full_name)>*  ·  \($resumo)"}}
+                  ]
+                  + (if $lista == "" then [] else [{type: "section", text: {type: "mrkdwn", text: $lista}}] end)
+                  + [{type: "context", elements: [
+                      {type: "image", image_url: .sender.avatar_url, alt_text: $autor},
+                      {type: "mrkdwn", text: "*\($autor)*  ·  <\(.compare)|Ver diff>  ·  <\($repo.html_url)/tree/\($ref)|Abrir \($tipo)>"}
+                    ]}])
+                }]
+              }
           ' "$GITHUB_EVENT_PATH")
           curl -fsS -X POST -H 'Content-Type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"
 
@@ -39,7 +60,29 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           payload=$(jq -c '
+            def esc: gsub("&"; "&amp;") | gsub("<"; "&lt;") | gsub(">"; "&gt;");
             .workflow_run as $r
-            | {text: ":red_circle: *[\(.repository.full_name)]* pipeline *\($r.name)* falhou (\($r.conclusion))\nBranch `\($r.head_branch)` · evento `\($r.event)` · por \($r.triggering_actor.login // $r.actor.login)\n<\($r.html_url)|Run #\($r.run_number)>"}
+            | .repository as $repo
+            | ((($r.updated_at | fromdateiso8601) - ($r.run_started_at | fromdateiso8601)) as $s | "\($s / 60 | floor)m\($s % 60)s") as $duracao
+            | ($r.triggering_actor.login // $r.actor.login) as $autor
+            | {
+                attachments: [{
+                  color: "#E01E5A",
+                  fallback: "Pipeline falhou: \($r.name) em \($repo.full_name) (\($r.head_branch))",
+                  blocks: [
+                    {type: "section", text: {type: "mrkdwn", text: ":x: *<\($r.html_url)|\($r.name | esc) #\($r.run_number)>* falhou em *<\($repo.html_url)|\($repo.full_name)>*"}},
+                    {type: "section", fields: [
+                      {type: "mrkdwn", text: "*Branch*\n`\($r.head_branch | esc)`"},
+                      {type: "mrkdwn", text: "*Gatilho*\n`\($r.event)`"},
+                      {type: "mrkdwn", text: "*Resultado*\n`\($r.conclusion)`"},
+                      {type: "mrkdwn", text: "*Duração*\n\($duracao)"}
+                    ]},
+                    {type: "context", elements: [
+                      {type: "image", image_url: ($r.triggering_actor.avatar_url // $r.actor.avatar_url), alt_text: $autor},
+                      {type: "mrkdwn", text: "*\($autor)*  ·  <\($repo.html_url)/commit/\($r.head_sha)|\($r.head_sha[0:7])> \($r.head_commit.message // "" | split("\n")[0] | esc)  ·  <\($r.html_url)|Abrir logs>"}
+                    ]}
+                  ]
+                }]
+              }
           ' "$GITHUB_EVENT_PATH")
           curl -fsS -X POST -H 'Content-Type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"
