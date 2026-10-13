@@ -1,0 +1,45 @@
+# Alertas Slack — equivalente aos service hooks Slack do Azure DevOps
+# (git.push em qualquer branch + build.complete com falha), migrado em 2026-10-13.
+# Webhook: secret de repositório SLACK_WEBHOOK_URL (plano Free: secret de org não chega a repo privado).
+# Payload montado com jq a partir de $GITHUB_EVENT_PATH: nada do evento é interpolado no shell.
+name: Alertas Slack
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["**"]
+
+permissions: {}
+
+jobs:
+  push:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Notificar push
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          payload=$(jq -c '
+            (.ref | sub("^refs/(heads|tags)/"; "")) as $ref
+            | (if .deleted then "removeu" elif .created then "criou" else "fez push em" end) as $acao
+            | ([.commits[]? | "• <\(.url)|\(.id[0:7])> \(.message | split("\n")[0])"] | .[0:10] | join("\n")) as $lista
+            | {text: "*[\(.repository.full_name)]* \(.pusher.name) \($acao) `\($ref)` (\(.commits | length) commit(s))\n\($lista)\n<\(.compare)|comparar>"}
+          ' "$GITHUB_EVENT_PATH")
+          curl -fsS -X POST -H 'Content-Type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"
+
+  falha:
+    if: github.event_name == 'workflow_run' && contains(fromJSON('["failure","timed_out","startup_failure"]'), github.event.workflow_run.conclusion)
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Notificar pipeline com falha
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          payload=$(jq -c '
+            .workflow_run as $r
+            | {text: ":red_circle: *[\(.repository.full_name)]* pipeline *\($r.name)* falhou (\($r.conclusion))\nBranch `\($r.head_branch)` · evento `\($r.event)` · por \($r.triggering_actor.login // $r.actor.login)\n<\($r.html_url)|Run #\($r.run_number)>"}
+          ' "$GITHUB_EVENT_PATH")
+          curl -fsS -X POST -H 'Content-Type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"
