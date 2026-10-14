@@ -26,11 +26,17 @@ jobs:
             .repository as $repo
             | (.ref | sub("^refs/(heads|tags)/"; "")) as $ref
             | (if (.ref | startswith("refs/tags/")) then "tag" else "branch" end) as $tipo
-            | ((.commits // []) | length) as $n
+            # Só commits novos no repositório: num merge de PR os commits da branch já foram
+            # anunciados no push dela (distinct=false); só o commit de merge é novidade.
+            | [(.commits // [])[] | select(.distinct)] as $novos
+            | (if ($novos | length) > 0 then $novos
+               elif .head_commit and (.deleted | not) and (.created | not) then [.head_commit]
+               else [] end) as $commits
+            | ($commits | length) as $n
             | (if .deleted then ":wastebasket: removeu \($tipo) `\($ref | esc)`"
                elif .created and $n == 0 then ":sparkles: criou \($tipo) `\($ref | esc)`"
-               else ":arrow_up: \($n) commit\(if $n == 1 then "" else "s" end) em `\($ref | esc)`" end) as $resumo
-            | ([(.commits // [])[-5:][] | "<\(.url)|\(.id[0:7])>  \(.message | split("\n")[0] | esc)  _\(.author.name | esc)_"]
+               else ":heavy_plus_sign: \($n) commit\(if $n == 1 then "" else "s" end) em `\($ref | esc)`" end) as $resumo
+            | ([$commits[-5:][] | "<\(.url)|\(.id[0:7])>  \(.message | split("\n")[0] | esc)  _\(.author.name | esc)_"]
                + (if $n > 5 then ["_… e mais \($n - 5)_"] else [] end) | join("\n")) as $lista
             | (.sender.login // .pusher.name) as $autor
             | {
