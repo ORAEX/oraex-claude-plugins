@@ -16,7 +16,7 @@
       "title": "Schema e isolamento por organização",
       "delivers": "Tabelas `portal_users` e `portal_invites` com `organization_id`, RLS e auditoria por trigger.",
       "acceptance": [
-        "Teste de RLS cruzando duas orgs passa",
+        "`test_rls.py` cruzando duas orgs passa",
         "Service-role restrito ao job de expiração de convite"
       ],
       "status": "done",

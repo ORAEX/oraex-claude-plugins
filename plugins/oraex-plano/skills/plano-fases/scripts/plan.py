@@ -495,7 +495,7 @@ def render(path: Path, allow_dirty: bool = False) -> str:
         if ph.get("finished"):
             dates.append(f"fim {fmt_date(ph['finished'])}")
         check = "✓" if st == "done" else ""
-        acc = "".join(f'<li><span class="box" aria-hidden="true">{check}</span>{inline(a)}</li>'
+        acc = "".join(f'<li><span class="box" aria-hidden="true">{check}</span><span>{inline(a)}</span></li>'
                       for a in ph["acceptance"])
         blocks = "".join(
             f'<p class="flag flag-block"><strong>Bloqueio {esc(b["id"])}</strong> · {inline(b["description"])}'

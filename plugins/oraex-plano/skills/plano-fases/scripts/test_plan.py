@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -180,6 +181,13 @@ class GitFlowTest(unittest.TestCase):
         html = self.publish(self.a, "r").read_text(encoding="utf-8")
         self.assertIn("Registro — F2b (2026-10-10, staging)", html)
         self.assertIn("#registro--f2b-2026-10-10-staging", html)
+
+    def test_inline_code_in_acceptance_stays_in_one_cell(self) -> None:
+        # O <li> do critério é um grid de 2 colunas: o texto precisa vir num único filho,
+        # senão cada `código` vira um item do grid e cai na coluna estreita da caixinha.
+        html = self.publish(self.a, "c").read_text(encoding="utf-8")
+        for li in re.findall(r'<li><span class="box"[^>]*>[^<]*</span>(.*?)</li>', html):
+            self.assertTrue(li.startswith("<span>") and li.endswith("</span>"), li)
 
 
 if __name__ == "__main__":
