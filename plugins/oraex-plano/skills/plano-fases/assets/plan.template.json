@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "nome-do-plano",
+  "title": "Nome do Plano",
+  "doc": "NOME_DO_PLANO.md",
+  "artifact": {
+    "url": null
+  },
+  "next_action": "A próxima coisa concreta a fazer.",
+  "phases": [
+    {
+      "id": "F1",
+      "title": "Título curto da fatia",
+      "delivers": "O que esta fatia entrega.",
+      "acceptance": [
+        "Critério verificável que prova que a fatia está pronta"
+      ],
+      "status": "next"
+    },
+    {
+      "id": "F2",
+      "title": "Título curto da fatia",
+      "delivers": "O que esta fatia entrega.",
+      "acceptance": [
+        "Critério verificável"
+      ],
+      "status": "pending"
+    }
+  ],
+  "decisions": [],
+  "blockers": [],
+  "open_items": []
+}

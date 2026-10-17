@@ -13,6 +13,10 @@ conta** — esses ficam na memória do projeto (privada).
   - **oraex-design** — skill `revisao-design`; agent `oraex-design-review`.
   - **oraex-ui** — skill `revisao-ui`; agent `oraex-ui-review`; baseline de
     identidade visual em `references/identidade-visual.md` + logos em `assets/logo/`.
+  - **oraex-plano** — skill `plano-fases`: plano em fases em `docs/<PLANO>.plan.json`
+    (fonte da verdade) + quadro em Artifact no mesmo URL, carimbado com o commit;
+    `plan.py` (stdlib) valida/renderiza/compara. Exemplo publicado (fictício):
+    https://claude.ai/artifact/FDFD6krapf4B22nnW8N8hr
 - Agents e skills de revisão (design + segurança de tenant) migrados do
   `~/projects/itsmx/.claude` para o marketplace. Disparo por gatilho/momento
   (não auto-spawn no start da sessão — decisão consciente).

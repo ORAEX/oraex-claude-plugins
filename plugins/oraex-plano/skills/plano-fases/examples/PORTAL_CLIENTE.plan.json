@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "id": "portal-cliente",
+  "title": "Portal do Cliente",
+  "doc": "PORTAL_CLIENTE.md",
+  "repo": {
+    "web_url": "https://github.com/ORAEX/portal-cliente-exemplo"
+  },
+  "artifact": {
+    "url": null
+  },
+  "next_action": "Repetir o teste de notificação em staging assim que o domínio de e-mail for verificado (B1).",
+  "phases": [
+    {
+      "id": "F1",
+      "title": "Schema e isolamento por organização",
+      "delivers": "Tabelas `portal_users` e `portal_invites` com `organization_id`, RLS e auditoria por trigger.",
+      "acceptance": [
+        "Teste de RLS cruzando duas orgs passa",
+        "Service-role restrito ao job de expiração de convite"
+      ],
+      "status": "done",
+      "started": "2026-09-29",
+      "finished": "2026-10-02",
+      "links": [
+        { "kind": "commit", "ref": "3f9c2a1" },
+        { "kind": "pr", "ref": "#41" }
+      ]
+    },
+    {
+      "id": "F2a",
+      "title": "Login por magic link",
+      "delivers": "`/portal/login` com magic link de 15 minutos e sessão separada da do agente.",
+      "acceptance": [
+        "Link usado duas vezes é recusado",
+        "Link de uma org não abre sessão em outra",
+        "Teste manual em staging com a Acme Logística"
+      ],
+      "status": "done",
+      "started": "2026-10-03",
+      "finished": "2026-10-06",
+      "links": [
+        { "kind": "pr", "ref": "#44" }
+      ]
+    },
+    {
+      "id": "F2b",
+      "title": "Abertura de chamado",
+      "delivers": "Formulário com categoria e prioridade herdadas do contrato; chamado nasce no ITSM com `source = 'portal'`.",
+      "acceptance": [
+        "Chamado do portal aparece na fila com o SLA do contrato",
+        "Cliente sem contrato ativo vê orientação, não erro"
+      ],
+      "status": "done",
+      "started": "2026-10-07",
+      "finished": "2026-10-10",
+      "links": [
+        { "kind": "pr", "ref": "#47" },
+        { "kind": "commit", "ref": "a81d07e", "label": "ajuste do SLA herdado" }
+      ]
+    },
+    {
+      "id": "F2c",
+      "title": "Notificações por e-mail",
+      "delivers": "E-mail ao cliente quando o chamado muda de status, com link de volta ao portal.",
+      "acceptance": [
+        "Mudança de status dispara um e-mail por chamado, sem duplicar",
+        "Cliente de outra org nunca recebe o e-mail",
+        "Descadastro respeitado"
+      ],
+      "status": "in_progress",
+      "started": "2026-10-13",
+      "notes": "Código pronto e testado localmente; falta o teste em staging."
+    },
+    {
+      "id": "F3a",
+      "title": "Acompanhamento e comentários",
+      "delivers": "Lista de chamados da org, linha do tempo do chamado e comentário do cliente.",
+      "acceptance": [
+        "Cliente vê só os chamados da própria org",
+        "Comentário do cliente entra no histórico do ITSM com autor identificado"
+      ],
+      "status": "next"
+    },
+    {
+      "id": "F3b",
+      "title": "Anexos",
+      "delivers": "Upload de anexos no chamado, com antivírus e limite por arquivo.",
+      "acceptance": [
+        "Arquivo infectado é recusado com mensagem clara",
+        "Anexo de uma org não é acessível por URL na outra"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "F4",
+      "title": "Produção para a primeira org",
+      "delivers": "Portal ligado em produção para a Acme Logística, com convite dos primeiros usuários.",
+      "acceptance": [
+        "Rollout na ordem de sempre: banco, código, flag por org",
+        "Primeiro chamado real aberto pelo portal e atendido"
+      ],
+      "status": "pending"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D1",
+      "question": "Como o cliente se autentica no portal?",
+      "status": "decided",
+      "decision": "Magic link por e-mail, sem senha. SSO do cliente fica para depois.",
+      "decided_on": "2026-10-01",
+      "phase": "F2a"
+    },
+    {
+      "id": "D2",
+      "question": "Onde guardar os anexos do portal?",
+      "status": "open",
+      "options": [
+        "Bucket do ITSM, com prefixo por org",
+        "Bucket próprio do portal, com URL assinada de curta duração"
+      ],
+      "phase": "F3b"
+    }
+  ],
+  "blockers": [
+    {
+      "id": "B1",
+      "description": "Domínio de envio `portal.acme-exemplo.com` ainda não verificado no provedor de e-mail; staging não envia.",
+      "status": "open",
+      "phase": "F2c",
+      "owner": "Infra",
+      "since": "2026-10-14"
+    }
+  ],
+  "open_items": [
+    {
+      "text": "Texto do e-mail de mudança de status revisado pelo atendimento",
+      "status": "open",
+      "phase": "F2c",
+      "owner": "Atendimento"
+    },
+    {
+      "text": "Definir limite de tamanho por anexo",
+      "status": "open",
+      "phase": "F3b"
+    }
+  ]
+}

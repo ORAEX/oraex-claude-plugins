@@ -16,6 +16,7 @@ qualquer projeto por configuração, em vez de copiar arquivo entre repos.
 | `oraex-security` | skills `audit-mfa`, `revisao-seguranca` · agent `oraex-security-review` | Auditorias de segurança: MFA (segundo fator exigido pelo servidor ou só sugerido pela UI) e isolamento de tenant + auditabilidade (RLS, tenant guards, service-role contido, rotas sem sessão). O agent roda a revisão de tenant em contexto isolado |
 | `oraex-design` | skill `revisao-design` · agent `oraex-design-review` | Revisão de arquitetura / design-doc contra os princípios ORAEX (multi-tenant dia-1, fronteiras de módulo, código-EN/UI-PT-BR, auditabilidade, fonte de verdade única, altitude). O agent revisa em contexto isolado, read-only |
 | `oraex-baseline` | skills `mcp-baseline`, `env-conventions`, `sessao` | Padroniza MCP por projeto (`.mcp.json` local, segredos per-dev no SSM Parameter Store via SSO), arquivos de ambiente (`.env`/`.env.local`/`.envrc`) e a rotina de sessão em máquinas sincronizadas por git |
+| `oraex-plano` | skill `plano-fases` | Acompanhamento de plano em fases: plano versionado no repo (`docs/<PLANO>.plan.json`) e quadro das fases publicado como Artifact no mesmo URL, republicável por qualquer dev sem perder atualização |
 
 ## Instalar
 

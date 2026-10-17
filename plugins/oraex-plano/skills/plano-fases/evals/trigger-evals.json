@@ -1,0 +1,20 @@
+[
+ {"query": "fechei a F2b agora, já escrevi o Registro — F2b no docs/PROPOSAL_AGENT_MULTITENANT.md. atualiza o status e o quadro", "should_trigger": true},
+ {"query": "qual o status do plano de multi-tenancy? to perdido em qual fatia a gente tá", "should_trigger": true},
+ {"query": "mostra o plano", "should_trigger": true},
+ {"query": "vamos planejar em fases a migração do módulo de contratos pro finx: quero fatias F1..F4 com o que cada uma entrega e critério de aceite, num doc em docs/", "should_trigger": true},
+ {"query": "bora começar a F3a do portal do cliente, marca como em andamento", "should_trigger": true},
+ {"query": "decidimos a D2: anexos vão num bucket próprio com URL assinada. registra isso no plano e republica", "should_trigger": true},
+ {"query": "surgiu um bloqueio na F2c: o domínio de e-mail não foi verificado ainda, infra tá cuidando. coloca isso no plano", "should_trigger": true},
+ {"query": "quebra esse design-doc em fatias verificáveis e me dá um painel pra eu acompanhar o andamento enquanto a gente codifica", "should_trigger": true},
+ {"query": "em que fase estamos do agente de propostas? e o que falta pra fechar a F4?", "should_trigger": true},
+ {"query": "cria uma lista de to-do pra hoje: revisar PR 52, responder o email da Ultrapar, rodar os testes de RLS", "should_trigger": false},
+ {"query": "me faz um checklist de deploy pra staging do crmx", "should_trigger": false},
+ {"query": "revisa esse design-doc docs/MULTI_TENANCY.md contra os princípios de arquitetura antes de eu codar", "should_trigger": false},
+ {"query": "monta um dashboard com o número de propostas geradas por mês, puxando do supabase", "should_trigger": false},
+ {"query": "escreve o roadmap de produto do itsmx para 2027 em um documento para mandar pra diretoria", "should_trigger": false},
+ {"query": "a migration da F2a falhou em staging com erro de RLS na tabela proposal_packs, me ajuda a debugar", "should_trigger": false},
+ {"query": "faz o commit dessas mudanças com uma mensagem boa e abre o PR", "should_trigger": false},
+ {"query": "encerrando a sessão por hoje, roda o session.sh end", "should_trigger": false},
+ {"query": "cria um slide deck com o cronograma do projeto pra apresentar na reunião de segunda", "should_trigger": false}
+]
